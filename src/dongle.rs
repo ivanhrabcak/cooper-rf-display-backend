@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     thread,
     time::{Duration, Instant},
 };
@@ -166,10 +167,57 @@ impl Dongle {
         Err("Timed out".to_string())
     }
 
-    // pub fn lookup_name_by_id(&mut self, id: String) -> Result<String, String> {
-    //     match self.port.write("AT$LIST\r\n".as_bytes()) {
-    //         Ok(x) => (),
-    //         Err(e) => return Err(e.to_string()),
-    //     };
-    // }
+    pub fn get_stations(&mut self) -> Result<HashMap<String, String>, String> {
+        match self.port.write("AT$LIST\r\n".as_bytes()) {
+            Ok(_) => (),
+            Err(e) => return Err(e.to_string()),
+        };
+
+        let mut buffer = vec![];
+        let mut x = match self.read_until_terminator() {
+            Ok(x) => x,
+            Err(e) => return Err(e.to_string()),
+        };
+
+        while x != "OK" {
+            buffer.push(x);
+            x = match self.read_until_terminator() {
+                Ok(x) => x,
+                Err(e) => return Err(e.to_string()),
+            };
+        }
+
+        let mut stations = HashMap::new();
+
+        for station in buffer {
+            let station_id = match station.split(",").nth(0) {
+                Some(x) => x.to_string(),
+                None => return Err("Invalid data! (id)".to_string()),
+            };
+
+            let station_name = match station.split(",").nth(1) {
+                Some(x) => x.to_string(),
+                None => return Err("Invalid data! (name)".to_string()),
+            }
+            .replace("\"", "");
+
+            stations.insert(station_id, station_name);
+        }
+
+        Ok(stations)
+    }
+
+    pub fn lookup_name_by_id(&mut self, id: &String) -> Result<String, String> {
+        let stations = match self.get_stations() {
+            Ok(x) => x,
+            Err(e) => return Err(e),
+        };
+
+        let station_name = stations.get(id);
+
+        match station_name {
+            Some(x) => Ok(x.to_string()),
+            None => Err("Station does not exist!".to_string()),
+        }
+    }
 }
