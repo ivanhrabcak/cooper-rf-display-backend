@@ -9,6 +9,7 @@ use crate::information::Information;
 
 pub struct Dongle {
     pub port: Box<dyn SerialPort>,
+    pub id: String,
     pub timeout: i32,
 }
 
@@ -24,14 +25,36 @@ impl Dongle {
         })
         .unwrap();
 
-        Self {
+        let mut dongle = Self {
             port: Box::new(port),
             timeout: 35,
-        }
+            id: "".to_string(),
+        };
+
+        dongle.id = dongle.get_id().unwrap();
+
+        dongle
     }
 
     pub fn set_timeout(&mut self, timeout: i32) {
         self.timeout = timeout;
+    }
+
+    pub fn get_id(&mut self) -> Result<String, String> {
+        match self.port.write("AT+CGSN\r\n".as_bytes()) {
+            Ok(_) => (),
+            Err(x) => return Err(x.to_string()),
+        };
+
+        let result = match self.read_until_terminator() {
+            Ok(x) => Ok(x),
+            Err(e) => Err(e.to_string()),
+        };
+
+        match self.read_until_terminator() {
+            Ok(_) => result,
+            Err(e) => Err(e.to_string()),
+        }
     }
 
     pub fn read_until_terminator(&mut self) -> Result<String, String> {
@@ -51,19 +74,6 @@ impl Dongle {
         }
 
         Err("Failed to read! (no data available)".to_string())
-    }
-
-    fn status(&mut self) -> Result<bool, String> {
-        match self.port.write("AT$STATUS\r\n".as_bytes()) {
-            Ok(_) => (),
-            Err(x) => return Err(x.to_string()),
-        };
-
-        let data = self.read_until_terminator();
-
-        println!("{:?}", data);
-
-        return Ok(true);
     }
 
     pub fn parse_information(&mut self, data: String) -> Result<Information, String> {
@@ -99,34 +109,41 @@ impl Dongle {
         let raw_data: Vec<&str> = data.split(",").collect();
 
         for [name, information_type] in information_structure.iter() {
-            println!("{} {}", raw_data[i], name);
             match *information_type {
                 "INT" => {
-                    let val = match raw_data[i].parse() {
-                        Ok(x) => x,
-                        Err(_) => {
-                            return Err(format!(
-                                "Failed to read {}, \"{}\" is not {}",
-                                name, raw_data[i], information_type
-                            ))
-                        }
-                    };
+                    if raw_data[i] == "" {
+                        information.set_field_i32(name.to_string(), -1);
+                    } else {
+                        let val = match raw_data[i].parse() {
+                            Ok(x) => x,
+                            Err(_) => {
+                                return Err(format!(
+                                    "Failed to read {}, \"{}\" is not {}",
+                                    name, raw_data[i], information_type
+                                ))
+                            }
+                        };
 
-                    information.set_field_i32(name.to_string(), val)
+                        information.set_field_i32(name.to_string(), val)
+                    }
                 }
                 "STR" => information.set_field_string(name.to_string(), raw_data[i].to_string()),
                 "F32" => {
-                    let val = match raw_data[i].parse() {
-                        Ok(x) => x,
-                        Err(_) => {
-                            return Err(format!(
-                                "Failed to read {}, \"{}\" is not {}",
-                                name, raw_data[i], information_type
-                            ))
-                        }
-                    };
+                    if raw_data[i] == "" {
+                        information.set_field_f32(name.to_string(), -1.0);
+                    } else {
+                        let val = match raw_data[i].parse() {
+                            Ok(x) => x,
+                            Err(_) => {
+                                return Err(format!(
+                                    "Failed to read {}, \"{}\" is not {}",
+                                    name, raw_data[i], information_type
+                                ))
+                            }
+                        };
 
-                    information.set_field_f32(name.to_string(), val);
+                        information.set_field_f32(name.to_string(), val);
+                    }
                 }
                 _ => unreachable!(),
             }
@@ -148,4 +165,11 @@ impl Dongle {
 
         Err("Timed out".to_string())
     }
+
+    // pub fn lookup_name_by_id(&mut self, id: String) -> Result<String, String> {
+    //     match self.port.write("AT$LIST\r\n".as_bytes()) {
+    //         Ok(x) => (),
+    //         Err(e) => return Err(e.to_string()),
+    //     };
+    // }
 }
