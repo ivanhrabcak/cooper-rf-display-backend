@@ -47,7 +47,7 @@ impl Dongle {
         };
 
         let result = match self.read_until_terminator() {
-            Ok(x) => Ok(x),
+            Ok(x) => Ok(x.replace("+CGSN: ", "")),
             Err(e) => Err(e.to_string()),
         };
 
