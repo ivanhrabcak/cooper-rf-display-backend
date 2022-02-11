@@ -15,6 +15,8 @@ pub struct Dongle {
     pub timeout: i32,
 }
 
+unsafe impl Send for Dongle {}
+
 impl Dongle {
     pub fn new(port: String) -> Self {
         let mut port = serial::open(&port).unwrap();

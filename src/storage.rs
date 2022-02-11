@@ -1,7 +1,6 @@
-use std::env::join_paths;
 use std::path::Path;
 
-use tokio::fs::File;
+use tokio::fs::{create_dir, File};
 use tokio::io::AsyncWriteExt;
 
 pub struct Storage {
@@ -13,11 +12,40 @@ impl Storage {
         Self { directory }
     }
 
-    pub async fn write_file(&mut self, filename: String, contents: String) -> Result<(), String> {
-        let new_file_path = match join_paths([Path::new(&self.directory), Path::new(&filename)]) {
-            Ok(x) => x,
-            Err(e) => return Err(e.to_string()),
-        };
+    pub async fn write_file(
+        &mut self,
+        device_id: String,
+        filename: String,
+        contents: String,
+    ) -> Result<(), String> {
+        if !Path::new(&self.directory).exists() {
+            match create_dir(&self.directory).await {
+                Ok(_) => (),
+                Err(e) => {
+                    return Err(format!(
+                        "Failed to create directory {}! {}",
+                        self.directory,
+                        e.to_string()
+                    ))
+                }
+            };
+        }
+
+        let id_path = Path::new(&self.directory).join(Path::new(&device_id));
+        if !id_path.exists() {
+            match create_dir(&id_path).await {
+                Ok(_) => (),
+                Err(e) => {
+                    return Err(format!(
+                        "Failed to create directory {}! {}",
+                        id_path.display().to_string(),
+                        e.to_string()
+                    ))
+                }
+            };
+        }
+
+        let new_file_path = Path::new(&id_path).join(Path::new(&filename));
 
         let file = File::create(new_file_path).await;
         if file.is_err() {
