@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    io::Write,
     thread,
     time::{Duration, Instant},
 };
