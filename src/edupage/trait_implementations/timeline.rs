@@ -1,6 +1,6 @@
 use crate::edupage::edupage::{Edupage, EdupageError};
 use crate::edupage::edupage_traits::Timeline;
-use crate::edupage::{self, edupage_types};
+use crate::edupage::edupage_types;
 
 impl Timeline for Edupage {
     fn filter_timeline_by_item_type(

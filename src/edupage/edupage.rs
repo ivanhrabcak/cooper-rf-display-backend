@@ -1,5 +1,3 @@
-use std::{fs::File, io::Write};
-
 use reqwest::{
     blocking::{Client, Response},
     header::{HeaderMap, HeaderName, HeaderValue},

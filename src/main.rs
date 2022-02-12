@@ -1,11 +1,9 @@
 use chrono::Local;
 
 use config::read_config;
-use edupage::edupage::Edupage;
-use edupage::edupage_traits::Login;
+
 use rocket::{launch, routes};
 use storage::Storage;
-use tokio::task::spawn_blocking;
 
 use crate::api::data::get_data_from_date;
 use crate::api::data::get_data_points_for_date;
@@ -24,9 +22,6 @@ pub mod storage;
 async fn rocket() -> _ {
     let config = read_config().await.unwrap();
     let mut dongle = Dongle::new((&config).dongle_port.clone());
-
-    let username = (&config).edupage.username.clone();
-    let password = (&config).edupage.password.clone();
 
     let storage_directory = (&config).save_directory.clone();
 
