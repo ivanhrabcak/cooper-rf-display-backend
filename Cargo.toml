@@ -14,3 +14,9 @@ tokio = { version = "1", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
 rocket = "0.5.0-rc.1"
 futures = "0.3.21"
+reqwest = { version = "0.11", features = ["blocking", "json", "cookies"] }
+num_enum = "0.5.6"
+serde_urlencoded = "0.7.0"
+serde-aux = "3.0.1"
+node-bindgen = { version = "5.0.0" }
+common_macros = "0.1.1"
