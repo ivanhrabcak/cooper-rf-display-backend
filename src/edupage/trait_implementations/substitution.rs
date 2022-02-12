@@ -32,8 +32,6 @@ impl Substitution for Edupage {
             self.gsec_hash.as_ref().unwrap()
         );
 
-        println!("{post_data}");
-
         let response = match self.request(url, POST, Some(headers), Some(post_data)) {
             Ok(x) => x,
             Err(e) => return Err(EdupageError::HTTPError(e)),
@@ -41,7 +39,6 @@ impl Substitution for Edupage {
 
         Ok(match response.json::<HashMap<String, Value>>() {
             Ok(x) => {
-                println!("{:?}", x);
                 let r = x.get("r");
                 if r.is_none() {
                     return Err(EdupageError::SerializationError(
