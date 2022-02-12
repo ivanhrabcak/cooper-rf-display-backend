@@ -80,89 +80,12 @@ impl Dongle {
         Err("Failed to read! (no data available)".to_string())
     }
 
-    pub fn parse_information(&mut self, data: String) -> Result<Information, String> {
-        if !data.contains("$RECV") {
-            return Err("Invalid data format!".to_string());
-        }
-
-        let information_structure: Vec<[&'static str; 2]> = vec![
-            ["rssi", "INT"],
-            ["id", "STR"],
-            ["header", "INT"],
-            ["sequence", "INT"],
-            ["uptime", "INT"],
-            ["altitude", "INT"],
-            ["co2_conc", "INT"],
-            ["humidity", "F32"],
-            ["illuminance", "INT"],
-            ["motion_count", "INT"],
-            ["orientation", "INT"],
-            ["press_count", "INT"],
-            ["pressure", "INT"],
-            ["sound_level", "INT"],
-            ["temperature", "F32"],
-            ["voc_conc", "INT"],
-            ["voltage", "F32"],
-        ];
-
-        let mut information = Information::new();
-
-        let mut i = 0;
-
-        let data = data.replace("$RECV: ", "");
-        let raw_data: Vec<&str> = data.split(",").collect();
-
-        for [name, information_type] in information_structure.iter() {
-            match *information_type {
-                "INT" => {
-                    if raw_data[i] == "" {
-                        information.set_field_i32(name.to_string(), -1);
-                    } else {
-                        let val = match raw_data[i].parse() {
-                            Ok(x) => x,
-                            Err(_) => {
-                                return Err(format!(
-                                    "Failed to read {}, \"{}\" is not {}",
-                                    name, raw_data[i], information_type
-                                ))
-                            }
-                        };
-
-                        information.set_field_i32(name.to_string(), val)
-                    }
-                }
-                "STR" => information.set_field_string(name.to_string(), raw_data[i].to_string()),
-                "F32" => {
-                    if raw_data[i] == "" {
-                        information.set_field_f32(name.to_string(), -1.0);
-                    } else {
-                        let val = match raw_data[i].parse() {
-                            Ok(x) => x,
-                            Err(_) => {
-                                return Err(format!(
-                                    "Failed to read {}, \"{}\" is not {}",
-                                    name, raw_data[i], information_type
-                                ))
-                            }
-                        };
-
-                        information.set_field_f32(name.to_string(), val);
-                    }
-                }
-                _ => unreachable!(),
-            }
-            i += 1;
-        }
-
-        return Ok(information);
-    }
-
     pub fn wait_for_information(&mut self) -> Result<Information, String> {
         let start = Instant::now();
         while start.elapsed() <= Duration::from_millis((self.timeout * 1000).try_into().unwrap()) {
             let read = self.read_until_terminator();
             if read.is_ok() {
-                return self.parse_information(read.unwrap());
+                return Information::parse(read.unwrap());
             }
             thread::sleep(Duration::from_millis(300));
         }

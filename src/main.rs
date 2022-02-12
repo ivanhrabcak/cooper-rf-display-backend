@@ -1,13 +1,13 @@
-use std::time::Duration;
-
 use chrono::Local;
 use config::read_config;
-
 use rocket::{launch, routes};
 use storage::Storage;
 
+use crate::api::data::get_data_points_for_date;
+use crate::api::data::get_dates_with_data;
 use crate::dongle::Dongle;
 
+pub mod api;
 pub mod config;
 pub mod dongle;
 pub mod information;
@@ -18,14 +18,18 @@ async fn rocket() -> _ {
     let config = read_config().await.unwrap();
 
     let mut dongle = Dongle::new((&config).dongle_port.clone());
+
+    let stations = dongle.get_stations().unwrap();
+
     let storage_directory = (&config).save_directory.clone();
 
     tokio::spawn(async move {
-        let mut storage = Storage::new(storage_directory.to_string());
+        let storage = Storage::new(storage_directory.to_string());
         loop {
             let information = dongle.wait_for_information();
 
             if information.is_err() {
+                println!("{:?}", information);
                 continue;
             }
 
@@ -46,10 +50,11 @@ async fn rocket() -> _ {
                 Ok(_) => (),
                 Err(e) => println!("Failed to write information to file! {}", e.to_string()),
             }
-
-            tokio::time::sleep(Duration::from_millis(5000)).await;
         }
     });
 
-    rocket::build().mount("/", routes![])
+    rocket::build()
+        .mount("/", routes![get_data_points_for_date, get_dates_with_data])
+        .manage(stations)
+        .manage(config)
 }
