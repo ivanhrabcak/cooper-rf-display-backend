@@ -324,7 +324,6 @@ where
 
     let mut output: Vec<T> = Vec::new();
     for v in ts.values() {
-        println!("{:?}", &v);
         let t: T = serde_json::from_value(v.clone()).unwrap();
         output.push(t);
     }

@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDate, NaiveDateTime};
 use rocket::{get, State};
 
 use crate::config::Config;
@@ -33,7 +33,12 @@ pub async fn get_substitution(config: &State<Config>) -> Response<String> {
             if x.is_err() {
                 Response::new("Failed to fetch substitution".to_string(), 500)
             } else {
-                Response::new(x.unwrap(), 200)
+                let x = x.unwrap();
+                let x = match x.split("<span class=\"print-font-resizable\">").nth(1) {
+                    Some(x) => x.split("</span>").nth(0).unwrap(),
+                    None => return Response::new("Failed to fetch substitution".to_string(), 500),
+                };
+                Response::new(x.to_string(), 200)
             }
         }
         Err(_) => Response::new("Failed to fetch substitution".to_string(), 500),
