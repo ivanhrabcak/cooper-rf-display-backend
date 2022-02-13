@@ -10,7 +10,7 @@ where
     T: Send,
 {
     pub response: T,
-    pub status_code: u16,
+    pub status: u16,
 }
 
 impl<'r, T> Responder<'r, 'static> for Response<T>
@@ -26,7 +26,7 @@ where
         let response = rocket::Response::build()
             .sized_body(json_string.len(), Cursor::new(json_string))
             .header(ContentType::new("application", "json"))
-            .status(Status::from_code(self.status_code).unwrap())
+            .status(Status::from_code(self.status).unwrap())
             .finalize();
 
         Result::Ok(response)
@@ -40,7 +40,7 @@ where
     pub fn new(response: T, status_code: u16) -> Self {
         Response {
             response,
-            status_code,
+            status: status_code,
         }
     }
 }

@@ -2,17 +2,20 @@ use chrono::Local;
 
 use config::read_config;
 
+use cors::CORS;
 use rocket::{launch, routes};
 use storage::Storage;
 
 use crate::api::data::get_data_from_date;
 use crate::api::data::get_data_points_for_date;
 use crate::api::data::get_dates_with_data;
+use crate::api::data::get_stations;
 use crate::api::edupage::get_substitution;
 use crate::dongle::Dongle;
 
 pub mod api;
 pub mod config;
+pub mod cors;
 pub mod dongle;
 pub mod edupage;
 pub mod information;
@@ -64,9 +67,11 @@ async fn rocket() -> _ {
                 get_data_points_for_date,
                 get_dates_with_data,
                 get_data_from_date,
-                get_substitution
+                get_substitution,
+                get_stations
             ],
         )
         .manage(stations)
         .manage(config)
+        .attach(CORS)
 }

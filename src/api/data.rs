@@ -50,9 +50,14 @@ pub async fn get_data_points_for_date(
 
             let file_date = NaiveDateTime::from_timestamp(timestamp, 0);
 
+            println!("{}", file_date);
+
             if NaiveDateForm(file_date.date()) != date {
                 continue;
             }
+
+            println!("correct date!");
+
             station_data_points.push(file_date.format("%Y-%m-%d %H:%M:%S").to_string());
         }
 
@@ -194,4 +199,11 @@ pub async fn get_data_from_date(
             (ContentType::Text, "Invalid format!".to_string()),
         ),
     }
+}
+
+#[get("/api/stations")]
+pub fn get_stations(
+    stations: &State<HashMap<String, String>>,
+) -> Response<HashMap<String, String>> {
+    Response::new((*stations).clone(), 200)
 }
