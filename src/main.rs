@@ -30,9 +30,18 @@ async fn rocket() -> _ {
 
     spawn_blocking(move || {
         let mut edupage = Edupage::new();
-        edupage.login(&"gymlsba".to_string(), &config.edupage.username, &config.edupage.password).unwrap();
+        edupage
+            .login(
+                &"gymlsba".to_string(),
+                &config.edupage.username,
+                &config.edupage.password,
+            )
+            .unwrap();
+
+        println!("{:?}", edupage.data.unwrap().ringing_times);
     })
-    .await.unwrap();
+    .await
+    .unwrap();
     panic!("1234");
 
     let mut dongle = Dongle::new((&config).dongle_port.clone());

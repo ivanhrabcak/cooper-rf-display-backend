@@ -99,8 +99,6 @@ impl Edupage {
         .replace("\n", "")
         .replace("\r", "");
 
-        println!("{json}");
-
         self.data = Some(match serde_json::from_str(&json) {
             Ok(x) => x,
             Err(e) => {

@@ -2,7 +2,10 @@ use num_enum::TryFromPrimitiveError;
 use serde::{de::DeserializeOwned, ser, Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 
-use super::edupage_types::{DBIBase, TimelineItemType, UserID, RingingTime};
+use super::{
+    edupage_traits::LessonTime,
+    edupage_types::{DBIBase, RingingTime, TimelineItemType, UserID},
+};
 
 pub const TIMELINE_ITEM_TYPE_NAMES: [&'static str; 19] = [
     "news",
@@ -411,14 +414,31 @@ pub mod javascript_date_format_option {
     }
 }
 
-
-impl Deserialize<'_, > for RingingTime {
+impl<'r> Deserialize<'r> for LessonTime {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: Deserializer<'_> {
-        let time: Vec<String> = match String::deserialize(deserializer) {
+        D: Deserializer<'r>,
+    {
+        let time = match String::deserialize(deserializer) {
             Ok(x) => x,
-            Err(e) => return e
-        }.split(":").collect();
+            Err(_e) => {
+                return Err(serde::de::Error::custom(
+                    "Failed to deserialize ringing time",
+                ))
+            }
+        };
+
+        let time: Vec<&str> = time.split(":").collect();
+
+        let hours: i32 = match time[0].parse() {
+            Ok(x) => x,
+            Err(_) => return Err(serde::de::Error::custom("Failed to parse hours")),
+        };
+        let minutes: i32 = match time[1].parse() {
+            Ok(x) => x,
+            Err(_) => return Err(serde::de::Error::custom("Failed to parse minutes")),
+        };
+
+        Ok(LessonTime::new((hours, minutes)))
     }
 }

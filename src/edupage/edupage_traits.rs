@@ -1,8 +1,9 @@
 use chrono::NaiveDate;
+use serde::Serialize;
 
 use super::{
     edupage::EdupageError,
-    edupage_types::{DBIBase, Student, Teacher, TimelineItem, TimelineItemType},
+    edupage_types::{DBIBase, RingingTime, Student, Teacher, TimelineItem, TimelineItemType},
 };
 
 pub trait Login {
@@ -47,11 +48,18 @@ pub trait Substitution {
     ) -> Result<String, EdupageError>;
 }
 
+#[derive(Serialize, Clone, Copy, Debug)]
 pub struct LessonTime {
-    pub start_time: (i32, i32),
-    pub end_time: (i32, i32)
+    pub time: (i32, i32),
+}
+
+impl LessonTime {
+    pub fn new(time: (i32, i32)) -> Self {
+        Self { time }
+    }
 }
 
 pub trait Ringing {
-    fn get_ringing_times() -> Vec<LessonTime>;
+    fn get_ringing_times(&self) -> Vec<RingingTime>;
+    fn get_next_lesson_time(&self, time: (i32, i32)) -> RingingTime;
 }

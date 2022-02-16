@@ -137,7 +137,17 @@ pub struct RingingTime {
     pub start_time: LessonTime,
 
     #[serde(rename = "endtime")]
-    pub end_time: LessonTime 
+    pub end_time: LessonTime,
+}
+
+impl RingingTime {
+    pub fn new(name: String, start_time: LessonTime, end_time: LessonTime) -> Self {
+        Self {
+            name,
+            start_time,
+            end_time,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -154,7 +164,8 @@ pub struct UserData {
     #[serde(rename = "userid")]
     pub user_id: UserID,
 
-    pub ringing_times: Vec<RingingTime>
+    #[serde(rename = "zvonenia")]
+    pub ringing_times: Vec<RingingTime>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
