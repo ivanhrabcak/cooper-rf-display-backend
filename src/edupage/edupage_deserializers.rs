@@ -2,7 +2,7 @@ use num_enum::TryFromPrimitiveError;
 use serde::{de::DeserializeOwned, ser, Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 
-use super::edupage_types::{DBIBase, TimelineItemType, UserID};
+use super::edupage_types::{DBIBase, TimelineItemType, UserID, RingingTime};
 
 pub const TIMELINE_ITEM_TYPE_NAMES: [&'static str; 19] = [
     "news",
@@ -408,5 +408,17 @@ pub mod javascript_date_format_option {
             Ok(x) => Ok(Some(x)),
             Err(e) => Err(e),
         }
+    }
+}
+
+
+impl Deserialize<'_, > for RingingTime {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'_> {
+        let time: Vec<String> = match String::deserialize(deserializer) {
+            Ok(x) => x,
+            Err(e) => return e
+        }.split(":").collect();
     }
 }

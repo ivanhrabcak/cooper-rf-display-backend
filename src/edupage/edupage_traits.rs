@@ -46,3 +46,12 @@ pub trait Substitution {
         subdomain: &String,
     ) -> Result<String, EdupageError>;
 }
+
+pub struct LessonTime {
+    pub start_time: (i32, i32),
+    pub end_time: (i32, i32)
+}
+
+pub trait Ringing {
+    fn get_ringing_times() -> Vec<LessonTime>;
+}

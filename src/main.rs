@@ -5,6 +5,7 @@ use config::read_config;
 use cors::CORS;
 use rocket::{launch, routes};
 use storage::Storage;
+use tokio::task::spawn_blocking;
 
 use crate::api::data::get_data_from_date;
 use crate::api::data::get_data_points_for_date;
@@ -12,6 +13,8 @@ use crate::api::data::get_dates_with_data;
 use crate::api::data::get_stations;
 use crate::api::edupage::get_substitution;
 use crate::dongle::Dongle;
+use crate::edupage::edupage::Edupage;
+use crate::edupage::edupage_traits::Login;
 
 pub mod api;
 pub mod config;
@@ -24,6 +27,14 @@ pub mod storage;
 #[launch]
 async fn rocket() -> _ {
     let config = read_config().await.unwrap();
+
+    spawn_blocking(move || {
+        let mut edupage = Edupage::new();
+        edupage.login(&"gymlsba".to_string(), &config.edupage.username, &config.edupage.password).unwrap();
+    })
+    .await.unwrap();
+    panic!("1234");
+
     let mut dongle = Dongle::new((&config).dongle_port.clone());
 
     let storage_directory = (&config).save_directory.clone();

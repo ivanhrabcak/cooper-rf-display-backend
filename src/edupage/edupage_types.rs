@@ -3,7 +3,7 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::*;
 
-use super::edupage_deserializers::*;
+use super::{edupage_deserializers::*, edupage_traits::LessonTime};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Gender {
@@ -130,6 +130,17 @@ pub struct DBI {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RingingTime {
+    pub name: String,
+
+    #[serde(rename = "starttime")]
+    pub start_time: LessonTime,
+
+    #[serde(rename = "endtime")]
+    pub end_time: LessonTime 
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserData {
     pub items: Vec<TimelineItem>,
     pub dbi: DBI,
@@ -142,6 +153,8 @@ pub struct UserData {
 
     #[serde(rename = "userid")]
     pub user_id: UserID,
+
+    pub ringing_times: Vec<RingingTime>
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
