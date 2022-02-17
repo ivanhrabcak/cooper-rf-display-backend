@@ -9,7 +9,7 @@ use tokio::task::spawn_blocking;
 use super::response::Response;
 
 #[get("/api/edupage/substitution")]
-pub async fn get_substitution(config: &State<Config>) -> Response<String> {
+pub async fn get_substitution(config: &State<Config>, date: FormNaiveDateTime) -> Response<String> {
     let username = (&config).edupage.username.clone();
     let password = (&config).edupage.password.clone();
 
