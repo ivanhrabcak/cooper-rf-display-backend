@@ -1,11 +1,9 @@
+use chrono::{Local, NaiveDateTime, NaiveTime};
 use num_enum::TryFromPrimitiveError;
 use serde::{de::DeserializeOwned, ser, Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 
-use super::{
-    edupage_traits::LessonTime,
-    edupage_types::{DBIBase, RingingTime, TimelineItemType, UserID},
-};
+use super::edupage_types::{DBIBase, TimelineItemType, UserID};
 
 pub const TIMELINE_ITEM_TYPE_NAMES: [&'static str; 19] = [
     "news",
@@ -414,31 +412,25 @@ pub mod javascript_date_format_option {
     }
 }
 
-impl<'r> Deserialize<'r> for LessonTime {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'r>,
-    {
-        let time = match String::deserialize(deserializer) {
-            Ok(x) => x,
-            Err(_e) => {
-                return Err(serde::de::Error::custom(
-                    "Failed to deserialize ringing time",
-                ))
-            }
-        };
+pub fn deserialize_time<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: &str = &String::deserialize(deserializer)?;
 
-        let time: Vec<&str> = time.split(":").collect();
+    let time: Vec<&str> = s.split(":").collect();
 
-        let hours: i32 = match time[0].parse() {
-            Ok(x) => x,
-            Err(_) => return Err(serde::de::Error::custom("Failed to parse hours")),
-        };
-        let minutes: i32 = match time[1].parse() {
-            Ok(x) => x,
-            Err(_) => return Err(serde::de::Error::custom("Failed to parse minutes")),
-        };
+    let hours: u32 = match time[0].parse() {
+        Ok(x) => x,
+        Err(_) => return Err(serde::de::Error::custom("Failed to parse hours")),
+    };
+    let minutes: u32 = match time[1].parse() {
+        Ok(x) => x,
+        Err(_) => return Err(serde::de::Error::custom("Failed to parse minutes")),
+    };
 
-        Ok(LessonTime::new((hours, minutes)))
-    }
+    Ok(NaiveDateTime::new(
+        Local::now().date().naive_local(),
+        NaiveTime::from_hms(hours, minutes, 0),
+    ))
 }

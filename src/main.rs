@@ -11,6 +11,7 @@ use crate::api::data::get_data_from_date;
 use crate::api::data::get_data_points_for_date;
 use crate::api::data::get_dates_with_data;
 use crate::api::data::get_stations;
+use crate::api::edupage::get_next_lesson;
 use crate::api::edupage::get_substitution;
 use crate::dongle::Dongle;
 use crate::edupage::edupage::Edupage;
@@ -28,21 +29,17 @@ pub mod storage;
 async fn rocket() -> _ {
     let config = read_config().await.unwrap();
 
+    let username = (&config).edupage.username.clone();
+    let password = (&config).edupage.password.clone();
+
     spawn_blocking(move || {
         let mut edupage = Edupage::new();
         edupage
-            .login(
-                &"gymlsba".to_string(),
-                &config.edupage.username,
-                &config.edupage.password,
-            )
+            .login(&"gymlsba".to_string(), &username, &password)
             .unwrap();
-
-        println!("{:?}", edupage.data.unwrap().ringing_times);
     })
     .await
     .unwrap();
-    panic!("1234");
 
     let mut dongle = Dongle::new((&config).dongle_port.clone());
 
@@ -88,7 +85,8 @@ async fn rocket() -> _ {
                 get_dates_with_data,
                 get_data_from_date,
                 get_substitution,
-                get_stations
+                get_stations,
+                get_next_lesson
             ],
         )
         .manage(stations)

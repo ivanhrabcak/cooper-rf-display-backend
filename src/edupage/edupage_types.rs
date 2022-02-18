@@ -1,9 +1,9 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::*;
 
-use super::{edupage_deserializers::*, edupage_traits::LessonTime};
+use super::edupage_deserializers::*;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Gender {
@@ -131,17 +131,18 @@ pub struct DBI {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RingingTime {
-    pub name: String,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    pub name: i64,
 
-    #[serde(rename = "starttime")]
-    pub start_time: LessonTime,
+    #[serde(rename = "starttime", deserialize_with = "deserialize_time")]
+    pub start_time: NaiveDateTime,
 
-    #[serde(rename = "endtime")]
-    pub end_time: LessonTime,
+    #[serde(rename = "endtime", deserialize_with = "deserialize_time")]
+    pub end_time: NaiveDateTime,
 }
 
 impl RingingTime {
-    pub fn new(name: String, start_time: LessonTime, end_time: LessonTime) -> Self {
+    pub fn new(name: i64, start_time: NaiveDateTime, end_time: NaiveDateTime) -> Self {
         Self {
             name,
             start_time,

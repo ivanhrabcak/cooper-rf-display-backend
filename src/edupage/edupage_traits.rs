@@ -1,5 +1,4 @@
-use chrono::NaiveDate;
-use serde::Serialize;
+use chrono::{NaiveDate, NaiveDateTime};
 
 use super::{
     edupage::EdupageError,
@@ -48,18 +47,7 @@ pub trait Substitution {
     ) -> Result<String, EdupageError>;
 }
 
-#[derive(Serialize, Clone, Copy, Debug)]
-pub struct LessonTime {
-    pub time: (i32, i32),
-}
-
-impl LessonTime {
-    pub fn new(time: (i32, i32)) -> Self {
-        Self { time }
-    }
-}
-
 pub trait Ringing {
     fn get_ringing_times(&self) -> Vec<RingingTime>;
-    fn get_next_lesson_time(&self, time: (i32, i32)) -> RingingTime;
+    fn get_next_lesson_time(&self, time: NaiveDateTime) -> Option<NaiveDateTime>;
 }
