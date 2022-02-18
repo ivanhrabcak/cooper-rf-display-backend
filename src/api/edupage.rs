@@ -69,7 +69,7 @@ pub async fn get_next_lesson(config: &State<Config>, hours: u32, minutes: u32) -
                 let now = Local::now();
                 let day = now.date().format("%a").to_string();
 
-                if day == "Fri" {
+                if day == "Fri" || day == "Sun" || day == "Sat" {
                     Ok("Weekend!".to_string())
                 } else {
                     Err(EdupageError::ParseError(
