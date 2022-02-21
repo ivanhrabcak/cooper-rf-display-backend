@@ -1,4 +1,5 @@
 use chrono::{NaiveDate, NaiveDateTime};
+use serde::{Deserialize, Serialize};
 
 use super::{
     edupage::EdupageError,
@@ -47,7 +48,12 @@ pub trait Substitution {
     ) -> Result<String, EdupageError>;
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum NextDayPart {
+    LESSON, BREAK
+}
+
 pub trait Ringing {
     fn get_ringing_times(&self) -> Vec<RingingTime>;
-    fn get_next_lesson_time(&self, time: NaiveDateTime) -> Option<NaiveDateTime>;
+    fn get_next_lesson_time(&self, time: NaiveDateTime) -> Option<(NaiveDateTime, NextDayPart)>;
 }

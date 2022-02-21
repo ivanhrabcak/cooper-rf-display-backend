@@ -1,9 +1,10 @@
 use chrono::{Local, NaiveDateTime, NaiveTime};
 use rocket::{get, State};
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::edupage::edupage::{Edupage, EdupageError};
-use crate::edupage::edupage_traits::{Login, Ringing, Substitution};
+use crate::edupage::edupage_traits::{Login, Ringing, Substitution, NextDayPart};
 use tokio::task::spawn_blocking;
 
 use super::data::NaiveDateForm;
@@ -43,8 +44,14 @@ pub async fn get_substitution(config: &State<Config>, date: NaiveDateForm) -> Re
     }
 }
 
-#[get("/api/edupage/nextlesson?<hours>&<minutes>")]
-pub async fn get_next_lesson(config: &State<Config>, hours: u32, minutes: u32) -> Response<String> {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct NextPart {
+    pub time: String,
+    pub part_type: NextDayPart
+}
+
+#[get("/api/edupage/nextdaypart?<hours>&<minutes>")]
+pub async fn get_next_lesson(config: &State<Config>, hours: u32, minutes: u32) -> Response<NextPart> {
     let username = (&config).edupage.username.clone();
     let password = (&config).edupage.password.clone();
 
@@ -64,13 +71,16 @@ pub async fn get_next_lesson(config: &State<Config>, hours: u32, minutes: u32) -
             now_date,
             NaiveTime::from_hms(hours, minutes, 0),
         )) {
-            Some(x) => Ok(x.time().format("%H:%M").to_string()),
+            Some((x, p)) => {
+                let time = x.time().format("%H:%M").to_string();
+                Ok(NextPart { time, part_type: p })
+            },
             None => {
                 let now = Local::now();
                 let day = now.date().format("%a").to_string();
 
                 if day == "Fri" || day == "Sun" || day == "Sat" {
-                    Ok("Weekend!".to_string())
+                    Ok(NextPart { time: "Weekend!".to_string(), part_type: NextDayPart::BREAK })
                 } else {
                     Err(EdupageError::ParseError(
                         "Error while parsing ringing times".to_string(),
@@ -83,8 +93,8 @@ pub async fn get_next_lesson(config: &State<Config>, hours: u32, minutes: u32) -
     {
         Ok(x) => match x {
             Ok(r) => Response::new(r, 200),
-            Err(_) => Response::new("Server error!".to_string(), 500),
+            Err(_) => Response::new(NextPart { time: "Server error!".to_string(), part_type: NextDayPart::BREAK }, 500),
         },
-        Err(_) => Response::new("Fatal server error!".to_string(), 500),
+        Err(_) => Response::new(NextPart { time: "Fatal server error!".to_string(), part_type: NextDayPart::BREAK }, 500),
     }
 }
