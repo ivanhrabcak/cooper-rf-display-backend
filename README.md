@@ -98,3 +98,20 @@ All endpoints return JSON (if not specified).
     "status": 200
 }
 ```
+
+## `/api/data/<date>/<format>`
+- __Method:__ GET
+- __Parameters:__
+    - `date`: Date to get this data from
+    - `format`: `json` or `text` - the format of the data
+- __Returns:__
+    - The format will be best explained with example data:
+__JSON:__
+```json
+ADD DATA
+```
+__TEXT:__
+```
+TEXT
+```
+
