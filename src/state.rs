@@ -31,7 +31,10 @@ pub fn read_state(path: String) -> Result<State, String> {
         };
 
         let mut json = String::new();
-        file.read_to_string(&mut json);
+        match file.read_to_string(&mut json) {
+            Ok(_) => (),
+            Err(e) => return Err(e.to_string())
+        };
 
         let state: State = match serde_json::from_str(&json) {
             Ok(x) => x,
