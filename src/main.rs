@@ -20,6 +20,8 @@ pub mod edupage;
 pub mod information;
 pub mod routes;
 pub mod storage;
+pub mod questions;
+pub mod state;
 
 #[launch]
 async fn rocket() -> _ {
