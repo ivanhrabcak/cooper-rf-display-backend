@@ -25,7 +25,7 @@ pub fn read_state(path: String) -> Result<State, String> {
             return Err(format!("The path {path} doesn't exist!"));
         }
 
-        let file = match File::open(path) {
+        let mut file = match File::open(path) {
             Ok(x) => x,
             Err(e) => return Err(e.to_string())
         };
@@ -43,13 +43,13 @@ pub fn read_state(path: String) -> Result<State, String> {
 
 pub fn write_state(path: String, state: State) -> Result<(), String> {
     if Path::new(&path).exists() {
-        match remove_file(path) {
+        match remove_file(path.clone()) {
             Ok(_) => (),
             Err(e) => return Err(e.to_string())
         };
     }
 
-    let file = match File::create(path) {
+    let mut file = match File::create(path.clone()) {
         Ok(x) => x,
         Err(e) => return Err(e.to_string())
     };
