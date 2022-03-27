@@ -4,11 +4,16 @@ from flask_cors import CORS
 
 from sensor.dongle import Dongle
 from sensor.data_collection import DataCollection
+from sensor.data_collection import Storage
+
+from api.sensor_data import sensor_data_blueprint
 
 import signal
 
 app = Flask(__name__)
 CORS(app)
+
+app.register_blueprint(sensor_data_blueprint)
 
 api = Api(app)
 
@@ -27,5 +32,3 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, kill_data_collection_thread)
 
     app.run("0.0.0.0", 8080)
-
-

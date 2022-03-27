@@ -1,5 +1,10 @@
+from asyncore import read
 from threading import Thread
+from typing import Optional
+from datetime import date, datetime
+
 from sensor.dongle import Dongle
+
 import json
 import time
 import os
@@ -23,12 +28,36 @@ class Storage:
         new_file_path = os.path.join(station_path, f"{utc_now}.json")
         with open(new_file_path, "w+") as f:
             f.write(json.dumps(reading))
+    
+    def get_readings(self) -> Optional[dict[str, list[dict]]]:
+        if not os.path.exists(self.data_directory):
+            return None
+
+        readings = {}
+        for station in os.listdir(self.data_directory):
+            station_readings_path = os.path.join(self.data_directory, station)
+            
+            station_readings = []
+            for reading in os.listdir(station_readings_path):
+                reading_path = os.path.join(station_readings_path, reading)
+                reading_timestamp = int(reading.split(".json")[0])
+                
+                with open(reading_path, "r") as f:
+                    reading = json.loads(f.read())
+                    
+                    reading["timestamp"] = datetime.fromtimestamp(reading_timestamp)
+                    station_readings.append(reading)
+                    
+            
+            readings[station] = station_readings
+        
+        return readings
 
 class DataCollection(Thread):
     def __init__(self, dongle: Dongle):
         self.dongle = dongle
 
-        self.storage = Storage(".\\data")
+        self.storage = Storage("./data")
 
         self.should_exit = False
 
