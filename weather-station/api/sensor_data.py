@@ -1,12 +1,9 @@
 from datetime import datetime
 from datetime import date
 from flask import Blueprint
-from functools import reduce
-from typing import Callable
-
-import json
 
 from sensor.data_collection import Storage
+from util import Util
 
 sensor_data_blueprint = Blueprint("sensor_data", __name__)
 
@@ -20,12 +17,6 @@ class SensorData:
             output.append(date.strftime("%Y-%m-%d"))
         
         return output
-    
-    def __parse_date_ymd(date: str) -> date:
-        try:
-            return datetime.strptime(date, "%Y-%m-%d").date()
-        except ValueError:
-            return {"error": "Bad date format (please use %Y-%m-%d)"}
 
     @sensor_data_blueprint.route("/api/data/dates", methods=["GET"])
     def dates_with_data():
@@ -41,7 +32,7 @@ class SensorData:
     
     @sensor_data_blueprint.route("/api/data/points/<date>", methods=["GET"])
     def data_points(date: str):
-        date = SensorData.__parse_date_ymd(date)
+        date = Util.parse_date_ymd(date)
         
         measurements = Storage("./data").get_readings()
         
@@ -56,9 +47,9 @@ class SensorData:
         
         return data
     
-    @sensor_data_blueprint.route("/api/data/readings/<date>/json")
+    @sensor_data_blueprint.route("/api/data/readings/<date>/json", methods=["GET"])
     def readings_json(date: str):
-        date = SensorData.__parse_date_ymd(date)
+        date = Util.parse_date_ymd(date)
 
         measurements = Storage("./data").get_readings()
         
@@ -73,9 +64,9 @@ class SensorData:
         
         return data
     
-    @sensor_data_blueprint.route("/api/data/readings/<date>/text")
+    @sensor_data_blueprint.route("/api/data/readings/<date>/text", methods=["GET"])
     def readings_text(date: str):
-        date = SensorData.__parse_date_ymd(date)
+        date = Util.parse_date_ymd(date)
 
         measurements = Storage("./data").get_readings()
         
