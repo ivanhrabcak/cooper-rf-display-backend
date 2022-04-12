@@ -10,11 +10,12 @@ class Config:
         if not os.path.exists(path):
             raise FileNotFoundError(f"The file '{path}' does not exist")
 
-        config = ConfigParser.read_file(open(path))
+        config = ConfigParser()
+        config.read_file(open(path))
 
         config_structrue = [
             ("edupage", dict),
-            ("serial_port", str)
+            ("serial", dict)
         ]
 
         edupage_config_structure = [
@@ -23,7 +24,17 @@ class Config:
             ("subdomain", str)
         ]
 
+        serial_port_structure = [
+            ("serial_port", str)
+        ]
+
+        config = config._sections
+
         Util.ensure_all_fields(config, config_structrue)
         Util.ensure_all_fields(config["edupage"], edupage_config_structure)
+        Util.ensure_all_fields(config["serial"], serial_port_structure)
 
-        return config
+        return {
+            "serial_port": config["serial"]["serial_port"],
+            "edupage": config["edupage"]
+        }

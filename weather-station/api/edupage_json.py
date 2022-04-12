@@ -1,23 +1,23 @@
-from crypt import methods
-from edupage_api import Menu
+from edupage_api.people import EduAccountType
 from flask import Blueprint, request
 from dataclasses import asdict
+from datetime import datetime
 
 from config import Config
 from util import Util
 
-
-edupage_data_blueprint = Blueprint("edupage_data", __name__)
+edupage_data_blueprint = Blueprint("edupage_data_text", __name__)
 
 class EdupageData:
-    def __serialize_menu_list(menus: list[Menu]) -> list[dict]:
+    def __serialize_dataclass_list(menus: list[any]) -> list[dict]:
         output = []
         for menu in menus:
             output.append(asdict(menu))
         
         return output
 
-    @edupage_data_blueprint.route("/api/edupage/substituition/<date>", methods=["GET"])
+
+    @edupage_data_blueprint.route("/api/edupage/substitution/<date>", methods=["GET"])
     def get_missing_teachers(date: str):
         date = Util.parse_date_ymd(date)
 
@@ -25,19 +25,21 @@ class EdupageData:
 
         edupage = Util.create_edupage(config)
         
-        return asdict(edupage.get_missing_teachers(date))
+        return { "response": EdupageData.__serialize_dataclass_list(edupage.get_missing_teachers(date)) }
     
     @edupage_data_blueprint.route("/api/edupage/lunch/<date>", methods=["GET"])
     def get_lunch_for_date(date: str):
         date = Util.parse_date_ymd(date)
 
+        print(date)
+
         config = Config.parse_config()
 
         edupage = Util.create_edupage(config)
 
-        return EdupageData.__serialize_menu_list(
+        return { "response": EdupageData.__serialize_dataclass_list(
             edupage.get_lunches(date).menus
-        )
+        ) }
     
     @edupage_data_blueprint.route("/api/edupage/nextlesson", methods=["GET"])
     def get_next_lesson_time():
@@ -54,9 +56,12 @@ class EdupageData:
 
         edupage = Util.create_edupage(config)
 
-        # TODO: implement ringing times API
-
-        return "Not implemented!", 500
+        now = datetime.now()        
+        
+        date = datetime(now.year, now.month, now.day, hours, minutes)
+        next_ringing_time = edupage.get_next_ringing_time(date)
+        
+        return asdict(next_ringing_time)
         
 
         

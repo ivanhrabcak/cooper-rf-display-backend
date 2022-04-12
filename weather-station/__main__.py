@@ -7,6 +7,9 @@ from sensor.data_collection import DataCollection
 from sensor.data_collection import Storage
 
 from api.sensor_data import sensor_data_blueprint
+from api.edupage_json import edupage_data_blueprint
+from api.edupage_text import edupage_data_text_blueprint
+from api.error_handler import errors
 
 import signal
 
@@ -14,6 +17,10 @@ app = Flask(__name__)
 CORS(app)
 
 app.register_blueprint(sensor_data_blueprint)
+app.register_blueprint(edupage_data_blueprint)
+app.register_blueprint(edupage_data_text_blueprint)
+app.register_blueprint(errors)
+
 
 api = Api(app)
 

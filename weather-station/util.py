@@ -1,16 +1,21 @@
 from datetime import date, datetime
 from edupage_api import Edupage
 
+class DateFormatException(Exception):
+    pass
+
 class Util:
     @staticmethod
     def parse_date_ymd(date: str) -> date:
         try:
             return datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
-            return {"error": "Bad date format (please use %Y-%m-%d)"}
+            raise DateFormatException("Bad date format (please use %Y-%m-%d)")
     
     @staticmethod
     def create_edupage(config: dict) -> Edupage:
+        config = config["edupage"]
+
         edupage = Edupage()
         edupage.login(config["username"], config["password"], config["subdomain"])
 
