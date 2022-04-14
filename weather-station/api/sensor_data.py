@@ -18,8 +18,9 @@ class SensorData:
         
         return output
 
-    @sensor_data_blueprint.route("/api/data/dates", methods=["GET"])
-    def dates_with_data():
+    @sensor_data_blueprint.route("/api/data/dates/<format>", methods=["GET"])
+    @Util.multi_format
+    def dates_with_data(format: str):
         measurements = Storage("./data").get_readings()
 
         dates_with_data = set()
@@ -28,10 +29,11 @@ class SensorData:
                 measurement_date = measurement.get("timestamp")
                 dates_with_data.add(measurement_date)
         
-        return {"dates": SensorData.__serialize_date_set(dates_with_data)}
+        return SensorData.__serialize_date_set(dates_with_data)
     
-    @sensor_data_blueprint.route("/api/data/points/<date>", methods=["GET"])
-    def data_points(date: str):
+    @sensor_data_blueprint.route("/api/data/points/<date>/<format>", methods=["GET"])
+    @Util.multi_format
+    def data_points(date: str, format: str):
         date = Util.parse_date_ymd(date)
         
         measurements = Storage("./data").get_readings()
@@ -41,10 +43,15 @@ class SensorData:
             for measurement in measurements[station]:
                 if measurement["timestamp"].date() == date:
                     if data.get(station) is not None:
-                        data[station] += [measurement["timestamp"]]
+                        data[station] += [measurement["timestamp"].strftime("%Y-%m-%d %H:%M:%S")]
                     else:
-                        data[station] = [measurement["timestamp"]]
-        
+                        data[station] = [measurement["timestamp"].strftime("%Y-%m-%d %H:%M:%S")]
+
+        if format != "json":
+            for station in data:
+                data[station] = ";".join(data[station])
+
+
         return data
     
     @sensor_data_blueprint.route("/api/data/readings/<date>/json", methods=["GET"])
