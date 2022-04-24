@@ -1,4 +1,6 @@
 from datetime import date, datetime
+from fastapi import HTTPException
+from fastapi.responses import PlainTextResponse
 from edupage_api import Edupage
 
 from dataclasses import asdict, is_dataclass
@@ -14,7 +16,7 @@ class Util:
         try:
             return datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
-            raise DateFormatException("Bad date format (please use %Y-%m-%d)")
+            raise HTTPException(status_code=400, detail="Bad date format (please use %Y-%m-%d)")
     
     @staticmethod
     def create_edupage(config: dict) -> Edupage:
@@ -71,7 +73,7 @@ class Util:
             elif format == "text" or format == "csv":
                 if isinstance(output, list):
                     if len(output) == 0:
-                        return Util.serialize_to_csv(output)
+                        return PlainTextResponse(Util.serialize_to_csv(output))
                     
                     if is_dataclass(output[0]):
                         serialized_data = [Util.serialize_to_csv(asdict(x)) for x in output]
@@ -82,9 +84,9 @@ class Util:
                     else:
                         serialized_data = [Util.serialize_to_csv(x) for x in output]
 
-                    return "\n".join(serialized_data)
+                    return PlainTextResponse("\n".join(serialized_data))
                 elif isinstance(output, dict):
-                    return Util.serialize_to_csv(output)
+                    return PlainTextResponse(Util.serialize_to_csv(output))
             else:
                 return "Invalid Format!", 400
 

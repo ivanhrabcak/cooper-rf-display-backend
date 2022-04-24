@@ -1,15 +1,18 @@
-from flask import Blueprint, request
+from fastapi import APIRouter
 from dataclasses import asdict
 from datetime import datetime
 
-from config import Config
-from util import Util
+from ..config import Config
+from ..util import Util
 
 
-edupage_data_blueprint = Blueprint("edupage_data_text", __name__)
+router = APIRouter(
+    prefix="/api/edupage",
+    tags=["data", "edupage"]
+)
 
 class EdupageData:
-    @edupage_data_blueprint.route("/api/edupage/substitution/<date>/<format>", methods=["GET"])
+    @router.get("/substitution/{date}/{format}")
     @Util.multi_format
     def get_missing_teachers(date: str, format: str):
         date = Util.parse_date_ymd(date)
@@ -20,7 +23,11 @@ class EdupageData:
         
         return edupage.get_missing_teachers(date)
     
-    @edupage_data_blueprint.route("/api/edupage/lunch/<date>/<format>", methods=["GET"])
+    @router.get("/test")
+    def test():
+        return "Ok"
+    
+    @router.get("/lunch/{date}/{format}")
     @Util.multi_format
     def get_lunch_for_date(date: str, format: str):
         date = Util.parse_date_ymd(date)
@@ -35,18 +42,9 @@ class EdupageData:
 
         return lunch.menus
     
-    @edupage_data_blueprint.route("/api/edupage/nextlesson/<format>", methods=["GET"])
+    @router.get("/nextlesson/{format}")
     @Util.multi_format
-    def get_next_lesson_time(format: str):
-        params = request.args
-
-        hours = params.get("hours", type=int)
-        minutes = params.get("minutes", type=int)
-
-        if None in [hours, minutes]:
-            return {"error": "Missing fields in request!"}
-        
-
+    def get_next_lesson_time(format: str, hours: int, minutes: int):
         config = Config.parse_config()
 
         edupage = Util.create_edupage(config)

@@ -1,38 +1,52 @@
-from flask import Flask
-from flask_restful import Api, Resource, reqparse
-from flask_cors import CORS
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi_utils.tasks import repeat_every
 
-from sensor.dongle import Dongle
-from sensor.data_collection import DataCollection
-from sensor.data_collection import Storage
+import logging
+import schedule
+import threading
 
-from api.sensor_data import sensor_data_blueprint
-from api.edupage import edupage_data_blueprint
-from api.error_handler import errors
+from .sensor.dongle import Dongle
+from .sensor.data_collection import Storage
+from .routers import edupage, hardwario
 
-import signal
+app = FastAPI()
+logger = logging.Logger(__name__)
 
-app = Flask(__name__)
-CORS(app)
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=["*"], 
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True
+)
 
-app.register_blueprint(sensor_data_blueprint)
-app.register_blueprint(edupage_data_blueprint)
-app.register_blueprint(errors)
+app.include_router(edupage.router)
+app.include_router(hardwario.router)
 
-api = Api(app)
+def collect_data(dongle: Dongle = Dongle("COM3")):
+    if not dongle.is_initialized:
+        dongle.init()
 
-if __name__ == "__main__":
-    dongle = Dongle("COM3")
-    dongle.init()
+    storage = Storage("./data")
     
-    # start data collection in the background
-    data_collection_process = DataCollection(dongle)
-    data_collection_process.start()
+    if dongle.serial_port.in_waiting == 0:
+        return
 
-    def kill_data_collection_thread(x, y):
-        data_collection_process.should_exit = True
-        raise KeyboardInterrupt()
+    reading = dongle.wait_for_reading()
+    if reading is None:
+        return
 
-    signal.signal(signal.SIGINT, kill_data_collection_thread)
+    storage.save_reading(reading)
 
-    app.run("0.0.0.0", 8080)
+@app.on_event("startup")
+def start_data_collection():
+    schedule.every(5).seconds.do(collect_data)
+    
+    def run_scheduled_jobs_forever():
+        import time
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+    
+    threading.Thread(target=run_scheduled_jobs_forever).start()

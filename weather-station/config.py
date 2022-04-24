@@ -1,6 +1,6 @@
 import os
 
-from util import Util
+from .util import Util
 
 from configparser import ConfigParser
 

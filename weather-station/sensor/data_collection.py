@@ -1,9 +1,8 @@
-from asyncore import read
 from threading import Thread
 from typing import Optional
-from datetime import date, datetime
+from datetime import datetime
 
-from sensor.dongle import Dongle
+from .dongle import Dongle
 
 import json
 import time
@@ -53,21 +52,5 @@ class Storage:
         
         return readings
 
-class DataCollection(Thread):
-    def __init__(self, dongle: Dongle):
-        self.dongle = dongle
 
-        self.storage = Storage("./data")
-
-        self.should_exit = False
-
-        super().__init__()
-
-    def run(self):
-        while not self.should_exit:
-            reading = self.dongle.wait_for_reading()
-            if reading is None:
-                continue
-
-            self.storage.save_reading(reading)
 

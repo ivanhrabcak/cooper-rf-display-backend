@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Optional
-import dacite
 
 def parse_reading(s: str) -> Optional[dict]:
     data_format = [

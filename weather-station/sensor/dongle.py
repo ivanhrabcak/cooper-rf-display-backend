@@ -1,21 +1,22 @@
 from dataclasses import dataclass
-import time
-from sensor.reading import parse_reading
+from .reading import parse_reading
 import serial
 
 
 @dataclass
 class Dongle:
     port: str
+    is_initialized: bool = False
 
     def init(self):
-        self.__serial_port = serial.Serial(self.port, 115200, timeout=3600)
+        self.serial_port = serial.Serial(self.port, 115200, timeout=3600)
+        self.is_initialized = True
     
     def close(self):
-        self.__serial_port.close()
+        self.serial_port.close()
     
     def read_until_terminator(self) -> str:
-        output = self.__serial_port.read_until(b"\r\n").decode()
+        output = self.serial_port.read_until(b"\r\n").decode()
 
         if "ERROR" in output:
             raise IOError("Error response from dongle!")
@@ -23,7 +24,7 @@ class Dongle:
         return output.replace("\r\n", "")
 
     def get_id(self) -> str:
-        self.__serial_port.write(b"AT+CGSN\r\n")
+        self.serial_port.write(b"AT+CGSN\r\n")
 
         id = self.read_until_terminator()
         self.read_until_terminator()
@@ -41,7 +42,7 @@ class Dongle:
             }
         """
 
-        self.__serial_port.write(b"AT$LIST\r\n")
+        self.serial_port.write(b"AT$LIST\r\n")
 
         station_identifiers = {}
 
