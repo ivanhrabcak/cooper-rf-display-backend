@@ -30,7 +30,9 @@ class Config:
         ]
 
         netatmo_config_structure = [
-            ("devices", Union[str, list])
+            ("devices", Union[str, list]),
+            ("client_id", str),
+            ("token", str)
         ]
 
         config = config._sections
