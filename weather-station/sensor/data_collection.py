@@ -2,7 +2,9 @@ from threading import Thread
 from typing import Optional
 from datetime import datetime
 
-from .dongle import Dongle
+from .hardwario import Dongle
+from .netatmo import Netatmo
+from ..config import Config
 
 import json
 import time
@@ -52,5 +54,37 @@ class Storage:
         
         return readings
 
+def hardwario_collect_data(dongle: Dongle = Dongle("COM3")):
+    if not dongle.is_initialized:
+        dongle.init()
+
+    storage = Storage("./data")
+    
+    if dongle.serial_port.in_waiting == 0:
+        return
+
+    reading = dongle.wait_for_reading()
+    if reading is None:
+        return
+
+    storage.save_reading(reading)
 
 
+def netatmo_collect_data():
+    config = Config.parse_config()
+
+    storage = Storage("./data")
+
+    netatmo_config = config["netatmo"]
+
+    device_ids = netatmo_config["devices"]
+    client_id = netatmo_config["client_id"]
+    token = netatmo_config["token"]
+
+    if not isinstance(device_ids, list):
+        device_ids = [device_ids]
+    
+    for device in device_ids:
+        reading = Netatmo.fetch_data(device, client_id, token)
+        storage.save_reading(reading)
+        

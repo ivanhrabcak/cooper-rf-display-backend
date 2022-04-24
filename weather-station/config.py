@@ -1,6 +1,7 @@
 import os
 
 from .util import Util
+from typing import Union
 
 from configparser import ConfigParser
 
@@ -28,13 +29,19 @@ class Config:
             ("serial_port", str)
         ]
 
+        netatmo_config_structure = [
+            ("devices", Union[str, list])
+        ]
+
         config = config._sections
 
         Util.ensure_all_fields(config, config_structrue)
         Util.ensure_all_fields(config["edupage"], edupage_config_structure)
         Util.ensure_all_fields(config["serial"], serial_port_structure)
+        Util.ensure_all_fields(config["netatmo"], netatmo_config_structure)
 
         return {
             "serial_port": config["serial"]["serial_port"],
-            "edupage": config["edupage"]
+            "edupage": config["edupage"],
+            "netatmo": config["netatmo"]
         }

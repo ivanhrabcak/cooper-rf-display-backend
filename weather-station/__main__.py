@@ -1,17 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_utils.tasks import repeat_every
 
-import logging
 import schedule
 import threading
 
-from .sensor.dongle import Dongle
-from .sensor.data_collection import Storage
-from .routers import edupage, hardwario
+from .sensor.data_collection import hardwario_collect_data, netatmo_collect_data
+from .routers import edupage, sensors
 
 app = FastAPI()
-logger = logging.Logger(__name__)
 
 app.add_middleware(
     CORSMiddleware, 
@@ -22,26 +18,12 @@ app.add_middleware(
 )
 
 app.include_router(edupage.router)
-app.include_router(hardwario.router)
-
-def collect_data(dongle: Dongle = Dongle("COM3")):
-    if not dongle.is_initialized:
-        dongle.init()
-
-    storage = Storage("./data")
-    
-    if dongle.serial_port.in_waiting == 0:
-        return
-
-    reading = dongle.wait_for_reading()
-    if reading is None:
-        return
-
-    storage.save_reading(reading)
+app.include_router(sensors.router)
 
 @app.on_event("startup")
 def start_data_collection():
-    schedule.every(5).seconds.do(collect_data)
+    schedule.every(5).seconds.do(hardwario_collect_data)
+    schedule.every(30).seconds.do(netatmo_collect_data)
     
     def run_scheduled_jobs_forever():
         import time
