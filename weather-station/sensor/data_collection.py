@@ -18,6 +18,10 @@ class Storage:
         
         self.data_directory = data_directory
     
+    @staticmethod
+    def __clean_listdir(listdir: list[str]) -> list[str]:
+        return list(filter(lambda x: x != ".DS_Store", listdir))
+    
     def save_reading(self, reading: dict):
         station_path = os.path.join(self.data_directory, reading['id'])
 
@@ -35,11 +39,11 @@ class Storage:
             return None
 
         readings = {}
-        for station in os.listdir(self.data_directory):
+        for station in Storage.__clean_listdir(os.listdir(self.data_directory)):
             station_readings_path = os.path.join(self.data_directory, station)
             
             station_readings = []
-            for reading in os.listdir(station_readings_path):
+            for reading in Storage.__clean_listdir(os.listdir(station_readings_path)):
                 reading_path = os.path.join(station_readings_path, reading)
                 reading_timestamp = int(reading.split(".json")[0])
                 
@@ -54,7 +58,7 @@ class Storage:
         
         return readings
 
-def hardwario_collect_data(dongle: Dongle = Dongle("COM3")):
+def hardwario_collect_data(dongle: Dongle = Dongle(Config.parse_config()["serial_port"])):
     if not dongle.is_initialized:
         dongle.init()
 
