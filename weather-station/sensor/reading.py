@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+import time
 
 def parse_reading(s: str) -> Optional[dict]:
     data_format = [
@@ -29,5 +30,7 @@ def parse_reading(s: str) -> Optional[dict]:
             data_dict[key] = val_type(raw_data[i])
     except ValueError:
         return None
-    
+
+    data_dict["timestamp"] = int(time.time())
+
     return data_dict

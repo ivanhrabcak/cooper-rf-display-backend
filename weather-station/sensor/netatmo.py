@@ -11,9 +11,24 @@ class Netatmo:
             "humidity": reading["Humidity"],
             "noise": reading["Noise"]
         }
+    
+    @staticmethod
+    def get_token(client_secret: str, refresh_token: str) -> str:
+        url = "https://app.netatmo.net/oauth2/token"
+        body = {
+            "client_secret": client_secret,
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+            "client_id": "na_client_ios"
+        }
+
+        request = requests.post(url, body)        
+        response = request.json()
+
+        return response["access_token"], response["refresh_token"]
 
     @staticmethod
-    def fetch_data(device_id: str, client_id: str, token: str) -> dict | None:
+    def fetch_data(device_id: str, access_token: str) -> dict | None:
         request_data = {
             "devices_type" : [
                 "NHC"
@@ -24,7 +39,7 @@ class Netatmo:
 
         response = requests.post(
             url="https://app.netatmo.net/api/getstationsdata?", 
-            headers={ "Authorization": f"Bearer {client_id}|{token}" },
+            headers={ "Authorization": f"Bearer {access_token}" },
             json=request_data
         )
 

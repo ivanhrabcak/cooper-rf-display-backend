@@ -97,7 +97,12 @@ class Util:
     def serialize_reading(reading: dict):
         output = ""
 
-        measurement_date = reading["timestamp"].date().strftime("%Y-%m-%d")
+        if isinstance(reading["timestamp"], int):
+            timestamp = datetime.fromtimestamp(reading["timestamp"])
+        else:
+            timestamp = reading["timestamp"]
+        
+        measurement_date = timestamp.date().strftime("%Y-%m-%d")
         output += f"{measurement_date},"
 
         values = list(filter(lambda x: not isinstance(x, datetime), reading.values()))

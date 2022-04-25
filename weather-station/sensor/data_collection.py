@@ -2,6 +2,8 @@ from threading import Thread
 from typing import Optional
 from datetime import datetime
 
+import time
+
 from .hardwario import Dongle
 from .netatmo import Netatmo
 from ..config import Config
@@ -83,7 +85,14 @@ def hardwario_collect_data(dongle: Dongle = Dongle(Config.parse_config()["serial
     storage.save_reading(reading)
 
 
-def netatmo_collect_data():
+class NetatmoSecrects:
+    def __init__(self, access_token: str, refresh_token: str, timestamp: float):
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+
+        self.timestamp = timestamp
+
+def netatmo_collect_data(secrets: NetatmoSecrects = NetatmoSecrects(None, None, time.time())):
     config = Config.parse_config()
 
     storage = Storage("./data")
@@ -91,13 +100,17 @@ def netatmo_collect_data():
     netatmo_config = config["netatmo"]
 
     device_ids = netatmo_config["devices"]
-    client_id = netatmo_config["client_id"]
-    token = netatmo_config["token"]
+    
+    if secrets.access_token is None or time.time() - secrets.timestamp >= 10800:
+        client_secret = netatmo_config["client_secret"]
+        refresh_token = netatmo_config["refresh_token"]
+        
+        secrets.access_token = Netatmo.get_token(client_secret, refresh_token)[0]
 
     if not isinstance(device_ids, list):
         device_ids = [device_ids]
     
     for device in device_ids:
-        reading = Netatmo.fetch_data(device, client_id, token)
+        reading = Netatmo.fetch_data(device, secrets.access_token)
         storage.save_reading(reading)
         
