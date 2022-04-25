@@ -5,6 +5,7 @@ from datetime import datetime
 from .hardwario import Dongle
 from .netatmo import Netatmo
 from ..config import Config
+from ..util import Util
 
 import json
 import time
@@ -29,6 +30,14 @@ class Storage:
             os.makedirs(station_path)
         
         utc_now = int(time.time())
+
+        text_directory = os.path.join(station_path, "text")
+        if not os.path.exists(text_directory):
+            os.makedirs(text_directory)
+        
+        text_file_path = os.path.join(text_directory, f"{utc_now}.csv")
+        with open(text_file_path, "w+") as f:
+            f.write(Util.serialize_reading(reading))
 
         new_file_path = os.path.join(station_path, f"{utc_now}.json")
         with open(new_file_path, "w+") as f:

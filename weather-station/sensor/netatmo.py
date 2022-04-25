@@ -28,7 +28,15 @@ class Netatmo:
             json=request_data
         )
 
-        devices = response.json()["body"]["devices"]
+        
+        response = response.json()
+
+        response_body = response.get("body")
+
+        if not response_body:
+            print(response)
+        
+        devices = response_body["devices"]
 
         for device in devices:
             if device["_id"] == device_id:

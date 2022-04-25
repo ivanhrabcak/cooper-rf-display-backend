@@ -23,7 +23,7 @@ app.include_router(sensors.router)
 @app.on_event("startup")
 def start_data_collection():
     schedule.every(5).seconds.do(hardwario_collect_data)
-    schedule.every(30).seconds.do(netatmo_collect_data)
+    schedule.every(5).seconds.do(netatmo_collect_data)
     
     def run_scheduled_jobs_forever():
         import time

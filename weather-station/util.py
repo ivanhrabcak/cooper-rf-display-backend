@@ -92,3 +92,15 @@ class Util:
 
         
         return __impl
+    
+    @staticmethod
+    def serialize_reading(reading: dict):
+        output = ""
+
+        measurement_date = reading["timestamp"].date().strftime("%Y-%m-%d")
+        output += f"{measurement_date},"
+
+        values = list(filter(lambda x: not isinstance(x, datetime), reading.values()))
+
+        output += ",".join([str(x) for x in values])
+        return output
