@@ -23,7 +23,7 @@ class Storage:
     
     @staticmethod
     def __clean_listdir(listdir: list[str]) -> list[str]:
-        return list(filter(lambda x: x != ".DS_Store", listdir))
+        return list(filter(lambda x: x != ".DS_Store" and x != "text", listdir))
     
     def save_reading(self, reading: dict):
         station_path = os.path.join(self.data_directory, reading['id'])
