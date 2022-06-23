@@ -105,8 +105,7 @@ class SensorData:
         
         return PlainTextResponse(data)
 
-    @router.get("/stations/{format}")
-    @Util.multi_format
+    @router.get("/stations")
     def get_stations():
         return get_stations()
 
