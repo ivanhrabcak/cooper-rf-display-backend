@@ -50,6 +50,7 @@ class Dongle:
         identifier = self.read_until_terminator()
         
         while identifier != "OK":
+            print(identifier)
             id, name = identifier.split(",")
             name = name.replace('"', "")
 
