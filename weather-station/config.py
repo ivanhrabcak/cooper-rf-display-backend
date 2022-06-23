@@ -26,7 +26,7 @@ class Config:
         ]
 
         serial_port_structure = [
-            ("serial_port", str)
+            ("serial_port", str),
             ("data_path", str)
         ]
 
