@@ -78,8 +78,7 @@ def get_stations(stations: dict[str, str] = {}, push = {}):
 def hardwario_collect_data(dongle: Dongle = Dongle(Config.parse_config()["serial_port"])):
     if not dongle.is_initialized:
         dongle.init()
-
-    get_stations(push=dongle.get_stations())
+        get_stations(push=dongle.get_stations())
 
     config = Config().parse_config()
     storage = Storage(config.get("data_path"))
