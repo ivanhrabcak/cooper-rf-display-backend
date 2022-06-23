@@ -31,7 +31,7 @@ class Storage:
         if not os.path.exists(station_path):
             os.makedirs(station_path)
         
-        utc_now = int(time.time())
+        utc_now = datetime.now().strftime("%Y%m%d%H%M%S")
 
         text_directory = os.path.join(station_path, "text")
         if not os.path.exists(text_directory):
@@ -61,7 +61,7 @@ class Storage:
                 with open(reading_path, "r") as f:
                     reading = json.loads(f.read())
                     
-                    reading["timestamp"] = datetime.fromtimestamp(reading_timestamp)
+                    reading["timestamp"] = datetime.strptime(reading_timestamp, "%Y%m%d%H%M%S")
                     station_readings.append(reading)
                     
             
