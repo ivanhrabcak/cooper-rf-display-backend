@@ -107,7 +107,7 @@ class SensorData:
 
     @router.get("/stations/{format}")
     @Util.multi_format
-    def get_stations(date: str):
+    def get_stations():
         return get_stations()
 
         
