@@ -27,7 +27,7 @@ class Config:
 
         serial_port_structure = [
             ("serial_port", str)
-            ("data_directory", str)
+            ("data_path", str)
         ]
 
         netatmo_config_structure = [
