@@ -26,7 +26,8 @@ class Storage:
         return list(filter(lambda x: x != ".DS_Store" and x != "text", listdir))
     
     def save_reading(self, reading: dict):
-        station_path = os.path.join(self.data_directory, reading['id'])
+        stations = get_stations()
+        station_path = os.path.join(self.data_directory, stations[reading['id']])
 
         if not os.path.exists(station_path):
             os.makedirs(station_path)
