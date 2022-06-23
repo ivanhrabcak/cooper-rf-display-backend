@@ -27,6 +27,7 @@ class Config:
 
         serial_port_structure = [
             ("serial_port", str)
+            ("data_directory", str)
         ]
 
         netatmo_config_structure = [
@@ -43,6 +44,7 @@ class Config:
         Util.ensure_all_fields(config["netatmo"], netatmo_config_structure)
 
         return {
+            "data_path": config["serial"][data_directory],
             "serial_port": config["serial"]["serial_port"],
             "edupage": config["edupage"],
             "netatmo": config["netatmo"]

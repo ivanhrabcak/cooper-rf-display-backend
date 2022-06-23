@@ -68,12 +68,21 @@ class Storage:
             readings[station] = station_readings
         
         return readings
+    
+def get_stations(stations: dict[str, str] = {}, push = {}):
+    for k, v in push.items():
+        stations[k] = v
+    
+    return stations
 
 def hardwario_collect_data(dongle: Dongle = Dongle(Config.parse_config()["serial_port"])):
     if not dongle.is_initialized:
         dongle.init()
 
-    storage = Storage("./data")
+    get_stations(push=dongle.get_stations())
+
+    config = Config().parse_config()
+    storage = Storage(config.get("data_path"))
     
     if dongle.serial_port.in_waiting == 0:
         return
@@ -95,7 +104,7 @@ class NetatmoSecrects:
 def netatmo_collect_data(secrets: NetatmoSecrects = NetatmoSecrects(None, None, time.time())):
     config = Config.parse_config()
 
-    storage = Storage("./data")
+    storage = Storage(config.get("data_path"))
 
     netatmo_config = config["netatmo"]
 
