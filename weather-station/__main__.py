@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import schedule
 import threading
+import os
 
 from .sensor.data_collection import hardwario_collect_data, netatmo_collect_data
 from .routers import edupage, sensors
@@ -28,7 +29,11 @@ def start_data_collection():
     def run_scheduled_jobs_forever():
         import time
         while True:
-            schedule.run_pending()
+            try:
+                schedule.run_pending()
+            except Exception as e:
+                print("Error!")
+                print(e)
             time.sleep(1)
     
     threading.Thread(target=run_scheduled_jobs_forever).start()
