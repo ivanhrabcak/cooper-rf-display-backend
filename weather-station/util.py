@@ -95,17 +95,19 @@ class Util:
     
     @staticmethod
     def serialize_reading(reading: dict):
-        output = ""
+        # output = ""
 
-        if isinstance(reading["timestamp"], int):
-            timestamp = datetime.fromtimestamp(reading["timestamp"])
-        else:
-            timestamp = reading["timestamp"]
+        # if isinstance(reading["timestamp"], int):
+        #     timestamp = datetime.fromtimestamp(reading["timestamp"])
+        # else:
+        #     timestamp = reading["timestamp"]
         
-        measurement_date = timestamp.date().strftime("%Y-%m-%d")
-        output += f"{measurement_date},"
+        output = Util.serialize_to_csv(reading)
 
-        values = list(filter(lambda x: not isinstance(x, datetime), reading.values()))
+        # measurement_date = timestamp.date().strftime("%Y-%m-%d")
+        # output += f"{measurement_date},"
 
-        output += ",".join([str(x) for x in values])
+        # values = list(filter(lambda x: not isinstance(x, datetime), reading.values()))
+
+        # output += ",".join([str(x) for x in values])
         return output

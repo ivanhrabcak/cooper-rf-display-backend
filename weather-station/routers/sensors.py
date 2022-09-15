@@ -3,8 +3,9 @@ from datetime import date
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
-from ..sensor.data_collection import Storage
+from ..sensor.data_collection import Storage, get_stations
 from ..util import Util
+from ..config import Config
 
 router = APIRouter(
     prefix="/api/data",
@@ -28,7 +29,9 @@ class SensorData:
     @router.get("/dates/{format}")
     @Util.multi_format
     def dates_with_data(format: str):
-        measurements = Storage("./data").get_readings()
+        config = Config.parse_config()
+
+        measurements = Storage(config.get("data_path")).get_readings()
 
         dates_with_data = set()
         for station in measurements:
@@ -42,8 +45,10 @@ class SensorData:
     @Util.multi_format
     def data_points(date: str, format: str):
         date = Util.parse_date_ymd(date)
+
+        config = Config.parse_config()
         
-        measurements = Storage("./data").get_readings()
+        measurements = Storage(config.get("data_path")).get_readings()
         
         data = {}
         for station in measurements:
@@ -65,7 +70,8 @@ class SensorData:
     def readings_json(date: str):
         date = Util.parse_date_ymd(date)
 
-        measurements = Storage("./data").get_readings()
+        config = Config.parse_config()
+        measurements = Storage(config.get("data_path")).get_readings()
         
         data = {}
         for station in measurements:
@@ -82,7 +88,8 @@ class SensorData:
     def readings_text(date: str):
         date = Util.parse_date_ymd(date)
 
-        measurements = Storage("./data").get_readings()
+        config = Config.parse_config()
+        measurements = Storage(config.get("data_path")).get_readings()
         
         data = ""
         for station in measurements:
@@ -97,4 +104,9 @@ class SensorData:
                 data += "\n"
         
         return PlainTextResponse(data)
+
+    @router.get("/stations")
+    def get_stations():
+        return get_stations()
+
         

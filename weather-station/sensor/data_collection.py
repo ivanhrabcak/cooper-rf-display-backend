@@ -23,15 +23,16 @@ class Storage:
     
     @staticmethod
     def __clean_listdir(listdir: list[str]) -> list[str]:
-        return list(filter(lambda x: x != ".DS_Store", listdir))
+        return list(filter(lambda x: x != ".DS_Store" and x != "text", listdir))
     
     def save_reading(self, reading: dict):
-        station_path = os.path.join(self.data_directory, reading['id'])
+        stations = get_stations()
+        station_path = os.path.join(self.data_directory, stations[reading['id']])
 
         if not os.path.exists(station_path):
             os.makedirs(station_path)
         
-        utc_now = int(time.time())
+        utc_now = datetime.now().strftime("%Y%m%d%H%M%S")
 
         text_directory = os.path.join(station_path, "text")
         if not os.path.exists(text_directory):
@@ -61,19 +62,27 @@ class Storage:
                 with open(reading_path, "r") as f:
                     reading = json.loads(f.read())
                     
-                    reading["timestamp"] = datetime.fromtimestamp(reading_timestamp)
+                    reading["timestamp"] = datetime.strptime(reading_timestamp, "%Y%m%d%H%M%S")
                     station_readings.append(reading)
                     
             
             readings[station] = station_readings
         
         return readings
+    
+def get_stations(stations: dict[str, str] = {}, push = {}):
+    for k, v in push.items():
+        stations[k] = v
+    
+    return stations
 
 def hardwario_collect_data(dongle: Dongle = Dongle(Config.parse_config()["serial_port"])):
     if not dongle.is_initialized:
         dongle.init()
+        get_stations(push=dongle.get_stations())
 
-    storage = Storage("./data")
+    config = Config().parse_config()
+    storage = Storage(config.get("data_path"))
     
     if dongle.serial_port.in_waiting == 0:
         return

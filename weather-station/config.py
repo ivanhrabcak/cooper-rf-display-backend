@@ -27,7 +27,8 @@ class Config:
         ]
 
         serial_port_structure = [
-            ("serial_port", str)
+            ("serial_port", str),
+            ("data_path", str)
         ]
 
         netatmo_config_structure = [
@@ -47,6 +48,7 @@ class Config:
         config["netatmo"]["password"] = codecs.decode(encoded_password, "base64").decode()
 
         return {
+            "data_path": config["serial"]["data_path"],
             "serial_port": config["serial"]["serial_port"],
             "edupage": config["edupage"],
             "netatmo": config["netatmo"]
