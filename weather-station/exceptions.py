@@ -1,0 +1,2 @@
+class NetatmoAuthenticationException(Exception):
+    pass

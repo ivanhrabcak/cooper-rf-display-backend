@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 from .hardwario import Dongle
-from .netatmo import Netatmo
+from .netatmo import Netatmo, TokenSet
 from ..config import Config
 from ..util import Util
 
@@ -85,32 +85,33 @@ def hardwario_collect_data(dongle: Dongle = Dongle(Config.parse_config()["serial
     storage.save_reading(reading)
 
 
-class NetatmoSecrects:
-    def __init__(self, access_token: str, refresh_token: str, timestamp: float):
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-
-        self.timestamp = timestamp
-
-def netatmo_collect_data(secrets: NetatmoSecrects = NetatmoSecrects(None, None, time.time())):
-    config = Config.parse_config()
-
+def netatmo_collect_data(token_set: TokenSet = TokenSet.empty()):
     storage = Storage("./data")
 
+    config = Config.parse_config()
     netatmo_config = config["netatmo"]
 
     device_ids = netatmo_config["devices"]
     
-    if secrets.access_token is None or time.time() - secrets.timestamp >= 10800:
-        client_secret = netatmo_config["client_secret"]
-        refresh_token = netatmo_config["refresh_token"]
-        
-        secrets.access_token = Netatmo.get_token(client_secret, refresh_token)[0]
+    new_token_set = None
+    if token_set.is_expired():
+        new_token_set = Netatmo.get_access_token(netatmo_config["client_secret"], token_set.refresh_token)
+    elif token_set.is_empty():
+        new_token_set = Netatmo.login(
+            netatmo_config["client_secret"], 
+            netatmo_config["username"], 
+            netatmo_config["password"]
+        )
+    if new_token_set:
+        token_set.access_token = new_token_set.access_token
+        token_set.refresh_token = new_token_set.refresh_token
+        token_set.acquired = new_token_set.acquired
+        token_set.expires_in = new_token_set.expires_in
 
     if not isinstance(device_ids, list):
         device_ids = [device_ids]
     
     for device in device_ids:
-        reading = Netatmo.fetch_data(device, secrets.access_token)
+        reading = Netatmo.fetch_data(device, token_set.access_token)
         storage.save_reading(reading)
         

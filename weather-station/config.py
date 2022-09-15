@@ -1,3 +1,4 @@
+import codecs
 import os
 
 from .util import Util
@@ -31,8 +32,8 @@ class Config:
 
         netatmo_config_structure = [
             ("devices", Union[str, list]),
-            ("client_secret", str),
-            ("refresh_token", str)
+            ("username", str),
+            ("password", str)
         ]
 
         config = config._sections
@@ -41,6 +42,9 @@ class Config:
         Util.ensure_all_fields(config["edupage"], edupage_config_structure)
         Util.ensure_all_fields(config["serial"], serial_port_structure)
         Util.ensure_all_fields(config["netatmo"], netatmo_config_structure)
+
+        encoded_password = config["netatmo"]["password"].encode() 
+        config["netatmo"]["password"] = codecs.decode(encoded_password, "base64").decode()
 
         return {
             "serial_port": config["serial"]["serial_port"],
